@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AgriConnect - Login/Signup</title>
+    <link rel="stylesheet" href="login.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <div class="forms-container">
+            <!-- Login Form -->
+            <div class="form-section login-section show">
+                <h2>Welcome Back!</h2>
+                <form id="loginForm">
+                    <div class="input-field">
+                        <i class="fas fa-envelope"></i>
+                        <input type="email" placeholder="Email" required>
+                    </div>
+                    <div class="input-field">
+                        <i class="fas fa-lock"></i>
+                        <input type="password" placeholder="Password" required>
+                    </div>
+                    <div class="forgot-password">
+                        <a href="#" id="forgotPasswordLink">Forgot Password?</a>
+                    </div>
+                    <button type="submit" class="btn">Login</button>
+                    <div class="social-login">
+                        <p>Or login with</p>
+                        <button type="button" class="google-btn">
+                            <img src="assets/google-icon.svg" alt="Google">
+                            Google
+                        </button>
+                    </div>
+                    <p class="toggle-form">
+                        Don't have an account? <a href="#" id="showSignup">Sign up</a>
+                    </p>
+                </form>
+            </div>
+
+            <!-- Sign Up Form -->
+            <div class="form-section signup-section">
+                <h2>Create Account</h2>
+                <form id="signupForm">
+                    <div class="input-field">
+                        <i class="fas fa-user"></i>
+                        <input type="text" placeholder="Full Name" required>
+                    </div>
+                    <div class="input-field">
+                        <i class="fas fa-envelope"></i>
+                        <input type="email" placeholder="Email" required>
+                    </div>
+                    <div class="input-field">
+                        <i class="fas fa-lock"></i>
+                        <input type="password" placeholder="Password" required>
+                    </div>
+                    <div class="input-field">
+                        <i class="fas fa-lock"></i>
+                        <input type="password" placeholder="Confirm Password" required>
+                    </div>
+                    <button type="submit" class="btn">Sign Up</button>
+                    <div class="social-login">
+                        <p>Or sign up with</p>
+                        <button type="button" class="google-btn">
+                            <img src="assets/google-icon.svg" alt="Google">
+                            Google
+                        </button>
+                    </div>
+                    <p class="toggle-form">
+                        Already have an account? <a href="#" id="showLogin">Login</a>
+                    </p>
+                </form>
+            </div>
+
+            <!-- Forgot Password Form -->
+            <div class="form-section forgot-section">
+                <h2>Reset Password</h2>
+                <form id="forgotPasswordForm">
+                    <div class="input-field">
+                        <i class="fas fa-envelope"></i>
+                        <input type="email" placeholder="Enter your email" required>
+                    </div>
+                    <button type="submit" class="btn">Reset Password</button>
+                    <p class="toggle-form">
+                        Remember your password? <a href="#" id="backToLogin">Back to Login</a>
+                    </p>
+                </form>
+            </div>
+        </div>
+    </div>
+    <script src="login.js"></script>
+</body>
+</html> 
