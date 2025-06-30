@@ -6,6 +6,9 @@
     <title>AgriConnect - Your Agricultural Solutions Hub</title>
     <link rel="stylesheet" href="home.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="message.css"> <!-- Styles for notification panel -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="auth.js"></script>
 </head>
 <body>
    
@@ -19,14 +22,15 @@
             <a href="home.html" class="active">Home</a>
             <a href="home.html#services">Services</a>
             <a href="home.html#about">About Us</a>
+            <a href="message.html"><i class="fas fa-comments"></i> Messages</a>
         </div>
         <div class="auth-buttons">
-            <button class="login-btn" id="nav-login-btn">Login</button>
-            <!-- Profile Dropdown (Hidden by default) -->
-            <div class="profile-dropdown" style="display: none;">
+            <button class="login-btn" id="nav-login-btn" onclick="window.location.href='login.html'">Login</button>
+            <!-- Profile Dropdown (Initially hidden by JS, shown when logged in) -->
+            <div class="profile-dropdown" id="nav-profile-dropdown">
                 <div class="profile-trigger">
-                    <img src="assets/default-avatar.svg" alt="Profile" class="profile-image">
-                    <span class="profile-name">User</span>
+                    <img src="assets/default-avatar.svg" alt="Profile" class="profile-image" id="nav-profile-image">
+                    <span class="profile-name" id="nav-profile-name">User</span>
                 </div>
     
                 <div class="dropdown-content">
@@ -34,8 +38,11 @@
                             <i class="fas fa-user"></i>
                             My Profile
                         </a>
-                        
-                    <a href="#" class="dropdown-item logout-btn">
+                        <a href="message.html" class="dropdown-item" id="notification-button">
+                            <i class="fas fa-bell"></i>
+                            Notifications <span class="notification-count" style="display:none;">0</span>
+                        </a>
+                    <a href="#" class="dropdown-item" id="nav-logout-btn">
                         <i class="fas fa-sign-out-alt"></i>
                         Logout
                     </a>
@@ -60,7 +67,7 @@
         <div class="hero-content">
             <h1>Welcome to AgriConnect</h1>
             <p>Empowering farmers with modern solutions for sustainable agriculture</p>
-            <button class="cta-button">Get Started</button>
+            <button class="cta-button" >Get Started</button>
         </div>
     </section>
 
@@ -70,49 +77,70 @@
         <div class="services-grid">
             <div class="service-card">
                 <i class="fas fa-handshake"></i>
-                <button class="service-title" onclick="window.location.href='features/social.html'">AgriConnect Network</button>
+                <button class="service-title" onclick="window.location.href='social.html'">AgriConnect Network</button>
                 <p>Connect with farmers, experts, and agricultural professionals</p>
             </div>
             <div class="service-card">
                 <i class="fas fa-users"></i>
-                <button class="service-title" onclick="window.location.href='features/labor.html'">Labor Connect</button>
+                <button class="service-title" onclick="window.location.href='labor.html'">Labor Connect</button>
                 <p>Find and hire agricultural laborers for your farm</p>
             </div>
             <div class="service-card">
                 <i class="fas fa-store"></i>
                 <br>
-                <button class="service-title" onclick="window.location.href='features/products.html'">Products</button>
+                <button class="service-title" onclick="window.location.href='products.html'">Products</button>
                 <p>Buy and sell agricultural products and equipment</p>
             </div>
             <div class="service-card">
                 <i class="fas fa-cloud-sun"></i>
-                <button class="service-title" onclick="window.location.href='features/weather.html'">Weather Updates</button>
+                <button class="service-title" onclick="window.location.href='weather.html'">Weather Updates</button>
                 <p>Get real-time weather forecasts and alerts</p>
             </div>
             <div class="service-card">
                 <i class="fas fa-tasks"></i>
-                <button class="service-title" onclick="window.location.href='features/todo.html'">Todo Manager</button>
+                <button class="service-title" onclick="window.location.href='todo.html'">Todo Manager</button>
                 <p>Organize and track your farming tasks</p>
             </div>
             <div class="service-card">
                 <i class="fas fa-robot"></i>
-                <button class="service-title" onclick="window.location.href='features/chat.html'">AI Chat Assistant</button>
+                <button class="service-title" onclick="window.location.href='chat.html'">AI Chat Assistant</button>
                 <p>Get instant answers to your farming queries</p>
             </div>
             <div class="service-card">
                 <i class="fas fa-money-bill"></i>
-                <button class="service-title" onclick="window.location.href='features/expense.html'">expense Tracker</button>
+                <button class="service-title" onclick="window.location.href='expense.html'">expense Tracker</button>
                 <p>Organizing tool that helps you record and analyze your spending</p>
             </div>
             <div class="service-card">
                 <i class="fas fa-newspaper"></i>
                 <br>
-                <button class="service-title" onclick="window.location.href='features/news.html'">Agri News</button>
+                <button class="service-title" onclick="window.location.href='news.html'">Agri News</button>
                 <p>Impressionism is the newspaper of the soul</p>
             </div>
             
         </div>
     </section>
+
+     <!-- ====================================================== -->
+    <!-- START: Paste the new section code here -->
+    <!-- ====================================================== -->
+    <section id="recommendation" class="recommendation-section">
+        <div class="recommendation-content">
+            <h2>Crop Recommendation System 🌱</h2>
+            <p style="color: white;">Get data-driven crop recommendations based on your soil composition and local weather conditions to maximize your yield.</p>
+            <!-- 
+              IMPORTANT: Using a relative path is the correct way to link files.
+              This path assumes 'home.html' is in the root and your crop page is in '/features/'.
+              Adjust the path if your folder structure is different.
+            -->
+            <a href="crops.html">
+                <button class="cta-button">Launch Recommendation Tool</button>
+            </a>
+        </div>
+    </section>
+    <!-- ====================================================== -->
+    <!-- END: End of new section code -->
+    <!-- ====================================================== -->
 
     <!-- About Section -->
     <section id="about" class="about">
@@ -162,8 +190,105 @@
         </div>
     </footer>
 
+    <!-- Notification Panel -->
+    <div id="notification-panel" class="notification-panel">
+        <div class="notification-panel-header">
+            <h4>Notifications</h4>
+            <button id="close-notification-panel">&times;</button>
+        </div>
+        <div id="notification-list" class="notification-list">
+            <!-- Notifications will be populated here by message.js -->
+            <p>No new notifications.</p>
+        </div>
+    </div>
+
     <!-- Scripts -->
+    <script src="message.js"></script> <!-- For notification panel functionality -->
     <script src="home.js"></script>
-  
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            const loginButton = document.getElementById('nav-login-btn');
+            const profileDropdown = document.getElementById('nav-profile-dropdown');
+            const profileNameNav = document.getElementById('nav-profile-name');
+            const profileImageNav = document.getElementById('nav-profile-image');
+            const logoutButton = document.getElementById('nav-logout-btn');
+
+            // Default state: User is logged out
+            if(loginButton) loginButton.style.display = 'flex'; // Or 'block'
+            if(profileDropdown) profileDropdown.style.display = 'none';
+
+            const { data: { session }, error } = await supabase.auth.getSession();
+
+            if (error) {
+                console.error('Error getting session for UI update:', error);
+                // Keep default (logged out) state
+                return;
+            }
+
+            if (session && session.user) {
+                // User is logged in
+                if(loginButton) loginButton.style.display = 'none';
+                if(profileDropdown) profileDropdown.style.display = 'flex'; // Or 'block'
+
+                // Use getCurrentUserProfile from auth.js as it's designed for current user
+                const profile = await getCurrentUserProfile(); 
+                if (profile) {
+                    if(profileNameNav) profileNameNav.textContent = profile.full_name || session.user.email;
+                    if (profile.avatar_url && profileImageNav) {
+                        profileImageNav.src = profile.avatar_url;
+                    } else if (profileImageNav) {
+                        profileImageNav.src = 'assets/default-avatar.svg'; // Fallback
+                    }
+                } else {
+                    if(profileNameNav) profileNameNav.textContent = session.user.email; // Fallback to email
+                    if(profileImageNav) profileImageNav.src = 'assets/default-avatar.svg';
+                }
+
+                if (logoutButton) {
+                    logoutButton.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        logout(); // from auth.js
+                    });
+                }
+            } else {
+                // User is not logged in - state is already set by default above
+                // Ensure login button's onclick is present if it was dynamically added or modified
+                if(loginButton && !loginButton.onclick) {
+                     loginButton.onclick = () => { window.location.href = 'login.html'; };
+                }
+            }
+
+            // Hamburger menu toggle (from your home.js, ensure it doesn't conflict or is needed here)
+            const hamburger = document.querySelector('.hamburger');
+            const navLinks = document.querySelector('.nav-links');
+            const authButtons = document.querySelector('.auth-buttons');
+
+            if (hamburger && navLinks && authButtons) {
+                hamburger.addEventListener('click', () => {
+                    navLinks.classList.toggle('active');
+                    authButtons.classList.toggle('active');
+                });
+            }
+
+            // Profile dropdown toggle (if not handled globally or by home.js)
+            const profileTrigger = document.querySelector('.profile-trigger');
+            if (profileTrigger) {
+                profileTrigger.addEventListener('click', (event) => {
+                    event.stopPropagation(); // Prevent window click from closing it immediately
+                    const content = profileTrigger.nextElementSibling;
+                    if (content && content.classList.contains('dropdown-content')) {
+                        content.style.display = content.style.display === 'block' ? 'none' : 'block';
+                    }
+                });
+            }
+            // Close dropdown if clicked outside
+            window.addEventListener('click', function(event) {
+                if (profileDropdown && !profileDropdown.contains(event.target)) {
+                    const content = document.querySelector('.profile-dropdown .dropdown-content');
+                    if (content) content.style.display = 'none';
+                }
+            });
+        });
+    </script>
 </body>
-</html> 
+</html>

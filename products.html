@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AgriConnect Marketplace</title>
+    <link rel="stylesheet" href="home.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="auth.js"></script>
+    <link rel="stylesheet" href="products.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="logo">
+            <img src="assets/logo.svg" alt="Logo">
+            <span>AgriConnect</span>
+        </div>
+        <div class="nav-links">
+            <a href="home.html" class="active">Home</a>
+            <a href="home.html#services">Services</a>
+            <a href="home.html#about">About Us</a>
+            <a href="message.html"><i class="fas fa-comments"></i> Messages</a>
+        </div>
+        <div class="auth-buttons">
+            <button class="login-btn" id="nav-login-btn" onclick="window.location.href='login.html'">Login</button>
+            <div class="profile-dropdown" id="nav-profile-dropdown">
+                <div class="profile-trigger">
+                    <img src="assets/default-avatar.svg" alt="Profile" class="profile-image" id="nav-profile-image">
+                    <span class="profile-name" id="nav-profile-name">User</span>
+                </div>
+                <div class="dropdown-content">
+                    <a href="profile.html" class="dropdown-item">
+                        <i class="fas fa-user"></i> My Profile
+                    </a>
+                    <!-- The notification trigger has been moved from here -->
+                    <a href="#" class="dropdown-item" id="nav-logout-btn">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="hamburger">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+    </nav>
+    
+    <!-- Login Message -->
+    <div class="login-message" style="display: none;">
+        <div class="message-content">
+            <i class="fas fa-store"></i>
+            <h2>Please Login to Access AgriConnect Marketplace</h2>
+            <p>Buy and sell agricultural products, equipment, and more in our farmer's marketplace.</p>
+            <button class="login-redirect-btn" onclick="window.location.href='login.html'">Login Now</button>
+        </div>
+    </div>
+
+    <!-- Main Marketplace Container -->
+    <div class="marketplace-container" style="display: none;">
+        <!-- Search and Filter Section -->
+        <div class="search-section">
+            <div class="search-bar">
+                <input type="text" id="search-input" placeholder="Search products...">
+                <button id="search-btn"><i class="fas fa-search"></i></button>
+                
+                <!-- NEW: Notification button inside the search bar -->
+                <button id="notification-trigger" class="notification-btn">
+                    <i class="fas fa-bell"></i>
+                    <span class="notification-count" style="display:none;">0</span>
+                </button>
+            </div>
+            <!-- Notification Modal -->
+            <div id="notification-modal" class="modal">
+                <div class="modal-content">
+                    <span class="close-modal">×</span>
+                    <h2>Notifications</h2>
+                    <div id="notification-list">
+                        <p>No new notifications.</p>
+                    </div>
+                </div>
+            </div>
+    </div>
+
+            <div class="filter-buttons">
+                <button class="filter-btn active" data-category="all"><i class="fas fa-th-large"></i> All</button>
+                <button class="filter-btn" data-category="equipment"><i class="fas fa-tractor"></i> Equipment</button>
+                <button class="filter-btn" data-category="seeds"><i class="fas fa-seedling"></i> Seeds</button>
+                <button class="filter-btn" data-category="fertilizers"><i class="fas fa-flask"></i> Fertilizers</button>
+                <button class="filter-btn" data-category="irrigation"><i class="fas fa-water"></i> Irrigation</button>
+                <button class="filter-btn" data-category="other"><i class="fas fa-boxes"></i> Other</button>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+            <button id="post-product-btn" class="primary-btn"><i class="fas fa-plus"></i> Post Product</button>
+            <button id="view-cart-btn" class="secondary-btn"><i class="fas fa-shopping-cart"></i> Cart <span class="cart-count">0</span></button>
+            <button id="view-favorites-btn" class="secondary-btn"><i class="fas fa-heart"></i> Favorites <span class="favorites-count">0</span></button>
+        </div>
+
+        <!-- Products Grid -->
+        <div class="products-grid" id="products-grid">
+            <!-- Products will be dynamically added here -->
+        </div>
+    </div>
+
+    <!-- All Modals and Templates remain unchanged... -->
+    
+    <!-- MODALS -->
+    <!-- Post Product Modal -->
+    <div id="post-product-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal">×</span>
+            <h2>Post a Product</h2>
+            <form id="post-product-form">
+                <div class="form-group">
+                    <label for="product-name">Product Name</label>
+                    <input type="text" id="product-name" required>
+                </div>
+                <div class="form-group">
+                    <label for="product-category">Category</label>
+                    <select id="product-category" required>
+                        <option value="equipment">Equipment</option>
+                        <option value="seeds">Seeds</option>
+                        <option value="fertilizers">Fertilizers</option>
+                        <option value="irrigation">Irrigation</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="product-price">Price (₹)</label>
+                    <input type="number" id="product-price" required min="0">
+                </div>
+                <div class="form-group">
+                    <label for="product-description">Description</label>
+                    <textarea id="product-description" rows="4" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="product-images">Upload Images (Max 5)</label>
+                    <input type="file" id="product-images" accept="image/*" multiple required>
+                    <div class="image-preview" id="post-image-preview"></div>
+                </div>
+                <div class="form-group">
+                    <label for="seller-location">Location</label>
+                    <input type="text" id="seller-location" required placeholder="e.g., City, State">
+                </div>
+                <button type="submit" class="primary-btn" id="post-product-submit-btn">Post Product</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Product Details Modal -->
+    <div id="product-details-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal">×</span>
+            <div class="product-details">
+                <div class="product-images-slider"></div>
+                <div class="product-info">
+                    <h2 class="product-title"></h2>
+                    <p class="product-price"></p>
+                    <div class="seller-info">
+                        <h3>Seller Information</h3>
+                        <p class="seller-name"></p>
+                        <p class="seller-location"></p>
+                        <button class="contact-seller-btn"><i class="fas fa-envelope"></i> Contact Seller</button>
+                    </div>
+                    <div class="product-description"></div>
+                    <div class="product-actions">
+                        <button class="add-to-cart-btn"><i class="fas fa-shopping-cart"></i> Add to Cart</button>
+                        <button class="add-to-favorites-btn"><i class="far fa-heart"></i> Add to Favorites</button>
+                        <button class="delete-listing-btn" style="display:none;"><i class="fas fa-trash-alt"></i> Delete Listing</button>
+                        <button class="report-listing-btn"><i class="fas fa-flag"></i> Report Listing</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cart Modal -->
+    <div id="cart-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal">×</span>
+            <h2>Shopping Cart</h2>
+            <div id="cart-items" class="cart-items"></div>
+            <div class="cart-summary">
+                <div class="total">Total: ₹<span class="cart-total">0</span></div>
+                <button class="checkout-btn primary-btn">Proceed to Checkout</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Favorites Modal -->
+    <div id="favorites-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal">×</span>
+            <h2>Favorite Products</h2>
+            <div id="favorites-items" class="favorites-items"></div>
+        </div>
+    </div>
+
+    <!-- Templates -->
+    <template id="product-card-template">
+        <div class="product-card">
+            <div class="product-image">
+                <img src="assets/placeholder.png" alt="Product Image">
+                <button class="favorite-btn" title="Add to Favorites"><i class="far fa-heart"></i></button>
+                <button class="delete-product-btn" title="Delete Product" style="display:none;"><i class="fas fa-trash"></i></button>
+            </div>
+            <div class="product-content">
+                <h3 class="product-title"></h3>
+                <p class="product-price"></p>
+                <p class="product-location"></p>
+                <div class="product-actions">
+                    <button class="view-details-btn">View Details</button>
+                    <button class="add-to-cart-btn">Add to Cart</button>
+                </div>
+            </div>
+        </div>
+    </template>
+    
+    <!-- Toast container for notifications -->
+    <div id="toast-container"></div>
+
+    <!-- Scripts -->
+    <script src="products.js"></script>
+</body>
+</html>

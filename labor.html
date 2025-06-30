@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AgriConnect - Labor Connect</title>
+    <link rel="stylesheet" href="home.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="auth.js"></script>
+    <link rel="stylesheet" href="labor.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <!-- Navbar (Unchanged) -->
+    <nav class="navbar">
+        <div class="logo">
+            <img src="assets/logo.svg" alt="Logo">
+            <span>AgriConnect</span>
+        </div>
+        <div class="nav-links">
+            <a href="home.html">Home</a>
+            <a href="home.html#services">Services</a>
+            <a href="home.html#about">About Us</a>
+            <a href="message.html"><i class="fas fa-comments"></i> Messages</a>
+        </div>
+        <div class="auth-buttons">
+            <button class="login-btn" id="nav-login-btn" onclick="window.location.href='login.html'">Login</button>
+            <div class="profile-dropdown" id="nav-profile-dropdown" style="display: none;">
+                <div class="profile-trigger">
+                    <img src="assets/default-avatar.svg" alt="Profile" class="profile-image" id="nav-profile-image">
+                    <span class="profile-name" id="nav-profile-name">User</span>
+                </div>
+                <div class="dropdown-content">
+                    <a href="profile.html" class="dropdown-item"><i class="fas fa-user"></i> My Profile</a>
+                    <a href="#" class="dropdown-item" id="nav-logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</a>
+                </div>
+            </div>
+        </div>
+        <div class="hamburger"><span></span><span></span><span></span></div>
+    </nav>
+
+    <!-- Login Message -->
+    <div class="login-message" style="display: none;">
+        <div class="message-content">
+            <i class="fas fa-users"></i>
+            <h2>Please Login to Access Labor Connect</h2>
+            <p>Find and hire agricultural laborers or register yourself for farm work.</p>
+            <button class="login-redirect-btn" onclick="window.location.href='login.html'">Login Now</button>
+        </div>
+    </div>
+
+    <!-- Main Labor Connect Container -->
+    <div class="labor-container" style="display: none;">
+        <!-- Header Section with Notifications -->
+        <div class="header-section">
+            <div class="header-content">
+                <h1>Labor Connect</h1>
+                <p>Connect with agricultural laborers or register for farm work</p>
+            </div>
+            <div class="header-actions">
+                <button id="register-labor-btn" class="primary-btn"><i class="fas fa-user-plus"></i> Register as Labor</button>
+                <button id="view-bookings-btn" class="secondary-btn"><i class="fas fa-calendar-check"></i> My Bookings</button>
+                <button id="notification-btn" class="notification-bell-btn">
+                    <i class="fas fa-bell"></i>
+                    <span id="notification-count" class="notification-count" style="display: none;">0</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Search and Filter Section -->
+        <div class="search-section">
+            <div class="search-bar">
+                <input type="text" id="search-input" placeholder="Search by name...">
+                <button id="search-btn"><i class="fas fa-search"></i></button>
+            </div>
+            <div class="filter-buttons">
+                <button class="filter-btn active" data-type="all"><i class="fas fa-th-large"></i> All Workers</button>
+                <button class="filter-btn" data-type="plowing"><i class="fas fa-tractor"></i> Plowing</button>
+                <button class="filter-btn" data-type="harvesting"><i class="fas fa-wheat-awn"></i> Harvesting</button>
+                <button class="filter-btn" data-type="irrigation"><i class="fas fa-water"></i> Irrigation</button>
+                <button class="filter-btn" data-type="general"><i class="fas fa-tools"></i> General Work</button>
+            </div>
+        </div>
+
+        <!-- Labor Grid -->
+        <div class="labor-grid" id="labor-grid">
+            <p>Loading laborers...</p>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <!-- Register Labor Modal -->
+    <div id="register-labor-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal">×</span>
+            <h2>Register as Agricultural Labor</h2>
+            <form id="register-labor-form">
+                <div class="form-group">
+                    <label for="labor-name">Full Name</label>
+                    <input type="text" id="labor-name" required disabled>
+                </div>
+                <div class="form-group">
+                    <label for="labor-contact">Contact Number</label>
+                    <input type="tel" id="labor-contact" pattern="[0-9]{10}" required disabled>
+                </div>
+                <div class="form-group">
+                    <label for="labor-work-type">Work Type</label>
+                    <select id="labor-work-type" required>
+                        <option value="">Select Work Type</option>
+                        <option value="plowing">Plowing</option>
+                        <option value="harvesting">Harvesting</option>
+                        <option value="irrigation">Irrigation</option>
+                        <option value="general">General Work</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="labor-experience">Years of Experience</label>
+                    <input type="number" id="labor-experience" min="0" required>
+                </div>
+                 <div class="form-group">
+                    <label for="labor-description">Description</label>
+                    <textarea id="labor-description" placeholder="Describe your skills and services" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="labor-photo">Profile Photo</label>
+                    <input type="file" id="labor-photo" accept="image/*">
+                    <div class="image-preview" id="register-image-preview"></div>
+                </div>
+                <button type="submit" class="primary-btn">Register</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Booking Modal -->
+    <div id="booking-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal">×</span>
+            <h2>Book Laborer</h2>
+            <form id="booking-form">
+                <input type="hidden" id="booking-labor-id">
+                <p>You are booking: <strong id="booking-laborer-name"></strong></p>
+                <div class="form-group">
+                    <label for="booking-date">Work Date</label>
+                    <input type="date" id="booking-date" required>
+                </div>
+                <div class="form-group">
+                    <label for="booking-duration">Duration (e.g., 2 days, 8 hours)</label>
+                    <input type="text" id="booking-duration" required>
+                </div>
+                <div class="form-group">
+                    <label for="booking-location">Work Location (Village/District)</label>
+                    <input type="text" id="booking-location" required>
+                </div>
+                <div class="form-group">
+                    <label for="booking-details">Work Details</label>
+                    <textarea id="booking-details" required placeholder="Describe the work to be done."></textarea>
+                </div>
+                <button type="submit" class="primary-btn">Confirm Booking</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- My Bookings Modal -->
+    <div id="my-bookings-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal">×</span>
+            <h2>My Bookings</h2>
+            <div class="bookings-tabs">
+                <button class="tab-btn active" data-tab="received">Bookings Received</button>
+                <button class="tab-btn" data-tab="made">Bookings Made</button>
+            </div>
+            <div class="bookings-list" id="bookings-list">
+                <p>Loading bookings...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Modal -->
+    <div id="notification-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal">×</span>
+            <h2>Notifications</h2>
+            <div id="notification-list">
+                <p>No new notifications.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Template for Labor Cards -->
+    <template id="labor-card-template">
+        <div class="labor-card">
+            <div class="labor-image">
+                <img src="assets/default-avatar.svg" alt="Labor Profile">
+                <span class="availability-badge">Available</span>
+            </div>
+            <div class="labor-content">
+                <h3 class="labor-name">Laborer Name</h3>
+                <div class="labor-info">
+                    <span class="location"><i class="fas fa-map-marker-alt"></i> Location</span>
+                    <span class="experience"><i class="fas fa-briefcase"></i> 5 years exp.</span>
+                </div>
+                <div class="work-type">Work Type</div>
+                <p class="labor-description">A brief description of the laborer's skills and what they offer.</p>
+                <div class="labor-actions">
+                    <button class="book-btn"><i class="fas fa-calendar-plus"></i> Book Now</button>
+                    <button class="delete-btn" style="display: none;"><i class="fas fa-trash-alt"></i> Delete Profile</button>
+                </div>
+            </div>
+        </div>
+    </template>
+    
+    <!-- Scripts -->
+    <script src="labor.js" defer></script>
+</body>
+</html>

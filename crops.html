@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crop Recommendation - AgriConnect</title>
+    <!-- Main styles for navbar and page-specific styles -->
+    <link rel="stylesheet" href="home.css">
+    <link rel="stylesheet" href="crops.css">
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+
+    <!-- AgriConnect Standard Navbar -->
+    <nav class="navbar">
+        <div class="logo">
+            <img src="assets/logo.svg" alt="Logo">
+            <span>AgriConnect</span>
+        </div>
+        <div class="nav-links">
+            <a href="home.html">Home</a>
+            <a href="home.html#services">Services</a>
+            <a href="home.html#about">About Us</a>
+            <a href="message.html"><i class="fas fa-comments"></i> Messages</a>
+        </div>
+        <div class="auth-buttons">
+            <button class="login-btn" id="nav-login-btn">Login</button>
+            <div class="profile-dropdown" id="nav-profile-dropdown">
+                <div class="profile-trigger">
+                    <img src="assets/default-avatar.svg" alt="Profile" class="profile-image" id="nav-profile-image">
+                    <span class="profile-name" id="nav-profile-name">User</span>
+                </div>
+                <div class="dropdown-content">
+                    <a href="profile.html" class="dropdown-item"><i class="fas fa-user"></i> My Profile</a>
+                    <a href="#" class="dropdown-item" id="nav-logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</a>
+                </div>
+            </div>
+        </div>
+        <div class="hamburger">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+    </nav>
+
+    <!-- Login Required Message -->
+    <div id="login-message-container" class="container" style="display: none; text-align: center;">
+        <div class="result-container" style="background-color: #fff3cd; border-left-color: #ffc107; display: block;">
+            <h2><i class="fas fa-lock"></i> Authentication Required</h2>
+            <p style="font-size: 1rem; color: #666; margin-top: 1rem;">
+                Please log in to use the Crop Recommendation System.
+            </p>
+            <button id="login-redirect-btn" class="btn" style="margin-top: 1.5rem; max-width: 200px;">Go to Login</button>
+        </div>
+    </div>
+
+
+    <br><br>
+    <!-- Main Content for Logged-In Users -->
+    <div id="main-content-container" class="container" style="display: none;">
+        <header>
+            <h1>Crop Recommendation System 🌱</h1>
+            <div class="tab-nav">
+                <button class="tab-btn active" data-tab="recommendation">Get Recommendation</button>
+                <button class="tab-btn" data-tab="information">Crop Information</button>
+            </div>
+        </header>
+        
+        <main>
+            <!-- Recommendation Section -->
+            <div id="recommendation-section" class="tab-content active">
+                <p class="description">Enter your soil and weather conditions to receive a tailored crop recommendation.</p>
+                <form id="recommendation-form">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="nitrogen">Nitrogen (N)</label>
+                            <input type="number" id="nitrogen" placeholder="Enter Nitrogen in kg/ha" required step="any">
+                        </div>
+                        <div class="form-group">
+                            <label for="phosphorus">Phosphorus (P)</label>
+                            <input type="number" id="phosphorus" placeholder="Enter Phosphorus in kg/ha" required step="any">
+                        </div>
+                        <div class="form-group">
+                            <label for="potassium">Potassium (K)</label>
+                            <input type="number" id="potassium" placeholder="Enter Potassium in kg/ha" required step="any">
+                        </div>
+                        <div class="form-group">
+                            <label for="temperature">Temperature</label>
+                            <input type="number" id="temperature" placeholder="Enter Temperature in °C" required step="any">
+                        </div>
+                        <div class="form-group">
+                            <label for="humidity">Humidity</label>
+                            <input type="number" id="humidity" placeholder="Enter Humidity in %" required step="any">
+                        </div>
+                        <div class="form-group">
+                            <label for="ph">pH</label>
+                            <input type="number" id="ph" placeholder="Enter pH value" required step="any">
+                        </div>
+                        <div class="form-group full-width">
+                            <label for="rainfall">Rainfall</label>
+                            <input type="number" id="rainfall" placeholder="Enter Rainfall in mm" required step="any">
+                        </div>
+                    </div>
+                    <button type="submit" class="btn">Get Recommendation</button>
+                </form>
+                <div id="recommendation-result" class="result-container" style="display: none;">
+                    <h2>Recommended Crop:</h2>
+                    <p id="result-text"></p>
+                </div>
+            </div>
+
+            <!-- Crop Information Section -->
+            <div id="information-section" class="tab-content">
+                <p class="description">Look up the average ideal growing conditions for a specific crop from our dataset.</p>
+                <form id="crop-info-form">
+                    <div class="form-group single-group">
+                        <label for="crop-name">Crop Name</label>
+                        <input type="text" id="crop-name" placeholder="e.g., Rice, Maize, Apple" required>
+                    </div>
+                    <button type="submit" class="btn">Get Crop Info</button>
+                </form>
+                <div id="crop-info-result" class="result-container" style="display: none;">
+                    <h2 id="crop-info-title"></h2>
+                    <ul id="crop-info-list"></ul>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="auth.js"></script>
+    <script src="crops.js"></script>
+</body>
+</html>

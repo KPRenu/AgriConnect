@@ -60,71 +60,35 @@ document.documentElement.style.setProperty(
 ); 
 
 
-  fetch('navbar.html')
-    .then(response => response.text())
-    .then(data => {
-      document.getElementById('navbar-placeholder').innerHTML = data;
-    });
-
-// Login button click handler
-document.getElementById('nav-login-btn').addEventListener('click', () => {
-    window.location.href = 'login.html';
-});
-
 // Get Started button click handler
 if (ctaButton) {
     ctaButton.addEventListener('click', () => {
-        window.location.href = 'login.html';
+        // Redirect to login or a specific page, Supabase auth will handle if already logged in
+        window.location.href = 'login.html'; 
     });
 }
 
-// Logout button click handler
-document.querySelector('.logout-btn').addEventListener('click', (e) => {
-    e.preventDefault();
-    localStorage.removeItem('currentUser');
-    updateHomePageUI();
-});
-
-// Profile dropdown toggle
+// Profile dropdown toggle logic (if still needed and not fully covered by home.html inline script)
+// Note: The inline script in home.html now handles visibility based on login state.
+// This part might be for additional toggle behavior if the dropdown is complex.
 const profileTrigger = document.querySelector('.profile-trigger');
 const dropdownContent = document.querySelector('.dropdown-content');
 
-if (profileTrigger) {
-    profileTrigger.addEventListener('click', () => {
+if (profileTrigger && dropdownContent) { // Ensure elements exist
+    profileTrigger.addEventListener('click', (event) => {
+        event.stopPropagation(); // Prevent click from immediately closing due to document listener
         dropdownContent.style.display = dropdownContent.style.display === 'block' ? 'none' : 'block';
+    });
+
+    // Close dropdown when clicking outside
+    document.addEventListener('click', (e) => {
+        // Check if the click is outside the trigger and outside the dropdown content itself
+        if (profileTrigger && dropdownContent && !profileTrigger.contains(e.target) && !dropdownContent.contains(e.target)) {
+            dropdownContent.style.display = 'none';
+        }
     });
 }
 
-// Close dropdown when clicking outside
-document.addEventListener('click', (e) => {
-    if (!profileTrigger?.contains(e.target)) {
-        dropdownContent.style.display = 'none';
-    }
-});
-
-// Initialize UI based on login state
-const updateHomePageUI = () => {
-    const currentUser = JSON.parse(localStorage.getItem('currentUser'));
-    const loginBtn = document.getElementById('nav-login-btn');
-    const profileDropdown = document.querySelector('.profile-dropdown');
-    const profileName = document.querySelector('.profile-name');
-    const ctaButton = document.querySelector('.cta-button');
-
-    if (currentUser) {
-        loginBtn.style.display = 'none';
-        profileDropdown.style.display = 'block';
-        profileName.textContent = currentUser.name;
-        if (ctaButton) {
-            ctaButton.style.display = 'none';
-        }
-    } else {
-        loginBtn.style.display = 'block';
-        profileDropdown.style.display = 'none';
-        if (ctaButton) {
-            ctaButton.style.display = 'block';
-        }
-    }
-};
-
-// Call updateHomePageUI when the page loads
-document.addEventListener('DOMContentLoaded', updateHomePageUI);
+// The main UI updates based on login state are now handled by the inline script in home.html
+// using requireAuth() and getUserProfile() from auth.js.
+// Old updateHomePageUI and related localStorage logic have been removed.

@@ -6,21 +6,35 @@
     <title>AgriConnect - Login/Signup</title>
     <link rel="stylesheet" href="login.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        .auth-message {
+            text-align: center;
+            margin-bottom: 15px;
+            color: red; /* Default to error color */
+            font-weight: bold;
+        }
+        .auth-message.success {
+            color: green;
+        }
+    </style>
 </head>
 <body>
     <div class="container">
         <div class="forms-container">
+            <p id="authMessage" class="auth-message"></p>
             <!-- Login Form -->
             <div class="form-section login-section show">
                 <h2>Welcome Back!</h2>
+                <p class="signin-text">Sign in to your AgriConnect account</p>
                 <form id="loginForm">
                     <div class="input-field">
                         <i class="fas fa-envelope"></i>
-                        <input type="email" placeholder="Email" required>
+                        <input type="email" id="loginEmail" placeholder="Email" required>
                     </div>
                     <div class="input-field">
                         <i class="fas fa-lock"></i>
-                        <input type="password" placeholder="Password" required>
+                        <input type="password" id="loginPassword" placeholder="Password" required>
                     </div>
                     <div class="forgot-password">
                         <a href="#" id="forgotPasswordLink">Forgot Password?</a>
@@ -45,19 +59,19 @@
                 <form id="signupForm">
                     <div class="input-field">
                         <i class="fas fa-user"></i>
-                        <input type="text" placeholder="Full Name" required>
+                        <input type="text" id="signupFullName" placeholder="Full Name" required>
                     </div>
                     <div class="input-field">
                         <i class="fas fa-envelope"></i>
-                        <input type="email" placeholder="Email" required>
+                        <input type="email" id="signupEmail" placeholder="Email" required>
                     </div>
                     <div class="input-field">
                         <i class="fas fa-lock"></i>
-                        <input type="password" placeholder="Password" required>
+                        <input type="password" id="signupPassword" placeholder="Password" required>
                     </div>
                     <div class="input-field">
                         <i class="fas fa-lock"></i>
-                        <input type="password" placeholder="Confirm Password" required>
+                        <input type="password" id="signupConfirmPassword" placeholder="Confirm Password" required>
                     </div>
                     <button type="submit" class="btn">Sign Up</button>
                     <div class="social-login">
@@ -79,7 +93,7 @@
                 <form id="forgotPasswordForm">
                     <div class="input-field">
                         <i class="fas fa-envelope"></i>
-                        <input type="email" placeholder="Enter your email" required>
+                        <input type="email" id="forgotEmail" placeholder="Enter your email" required>
                     </div>
                     <button type="submit" class="btn">Reset Password</button>
                     <p class="toggle-form">

@@ -3,40 +3,39 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AgriConnect Finance</title>
-    <link rel="stylesheet" href="../home.css">
+    <title>Expense Tracker - AgriConnect</title>
+    <!-- Main styles from home page for navbar consistency -->
+    <link rel="stylesheet" href="home.css">
+    <!-- Page-specific styles -->
     <link rel="stylesheet" href="expense.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
-    <!-- Navbar -->
+
+    <!-- Navbar from home.html -->
     <nav class="navbar">
         <div class="logo">
-            <img src="../assets/logo.svg" alt="Logo">
+            <img src="assets/logo.svg" alt="Logo">
             <span>AgriConnect</span>
         </div>
         <div class="nav-links">
-            <a href="../home.html">Home</a>
-            <a href="../home.html#services">Services</a>
-            <a href="../home.html#about">About Us</a>
+            <a href="home.html">Home</a>
+            <a href="home.html#services">Services</a>
+            <a href="home.html#about">About Us</a>
+            <a href="message.html"><i class="fas fa-comments"></i> Messages</a>
         </div>
         <div class="auth-buttons">
-            <button class="login-btn" id="nav-login-btn">Login</button>
-            <div class="profile-dropdown" style="display: none;">
+            <button class="login-btn" id="nav-login-btn" onclick="window.location.href='login.html'">Login</button>
+            <div class="profile-dropdown" id="nav-profile-dropdown" style="display: none;">
                 <div class="profile-trigger">
-                    <img src="../assets/default-avatar.svg" alt="Profile" class="profile-image" id="nav-profile-image">
+                    <img src="assets/default-avatar.svg" alt="Profile" class="profile-image" id="nav-profile-image">
                     <span class="profile-name" id="nav-profile-name">User</span>
                 </div>
                 <div class="dropdown-content">
-                    <a href="../profile.html" class="dropdown-item">
-                        <i class="fas fa-user"></i>
-                        My Profile
-                    </a>
-                    <a href="#" class="dropdown-item logout-btn">
-                        <i class="fas fa-sign-out-alt"></i>
-                        Logout
-                    </a>
+                    <a href="profile.html" class="dropdown-item"><i class="fas fa-user"></i> My Profile</a>
+                    <a href="message.html" class="dropdown-item"><i class="fas fa-bell"></i> Notifications</a>
+                    <a href="#" class="dropdown-item" id="nav-logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</a>
                 </div>
             </div>
         </div>
@@ -47,14 +46,23 @@
         </div>
     </nav>
 
-    <div class="finance-container" style="display: none;">
-        <!-- Finance Quote Section -->
+    <!-- This message is shown to logged-out users -->
+    <div class="login-message" id="login-message-container">
+        <div class="message-content">
+            <i class="fas fa-lock"></i>
+            <h2>Access Denied</h2>
+            <p>You must be logged in to access the Expense Tracker. Please log in to manage your farm finances.</p>
+            <button class="login-redirect-btn" onclick="window.location.href='login.html'">Go to Login</button>
+        </div>
+    </div>
+
+    <!-- This is the main content, shown only to logged-in users -->
+    <div class="finance-container" id="finance-container" style="display: none;">
         <div class="quote-section">
             <i class="fas fa-quote-left"></i>
             <p id="finance-quote">Loading daily financial wisdom...</p>
         </div>
 
-        <!-- Balance Overview -->
         <div class="balance-section">
             <div class="balance-card total-balance">
                 <h3>Current Balance</h3>
@@ -70,7 +78,6 @@
             </div>
         </div>
 
-        <!-- Add Transaction Section -->
         <div class="add-transaction-section">
             <h2>Add New Transaction</h2>
             <form id="transaction-form">
@@ -87,9 +94,7 @@
                 </div>
                 <div class="form-group">
                     <label for="category">Category</label>
-                    <select id="category" required>
-                        <!-- Categories will be dynamically updated based on type -->
-                    </select>
+                    <select id="category" required></select>
                 </div>
                 <div class="form-group">
                     <label for="date">Date</label>
@@ -99,13 +104,10 @@
                     <label for="notes">Notes</label>
                     <textarea id="notes" rows="3" placeholder="Add any additional details..."></textarea>
                 </div>
-                <button type="submit" class="add-btn">
-                    <i class="fas fa-plus"></i> Add Transaction
-                </button>
+                <button type="submit" class="add-btn"><i class="fas fa-plus"></i> Add Transaction</button>
             </form>
         </div>
 
-        <!-- Charts Section -->
         <div class="charts-section">
             <div class="chart-container">
                 <h3>Expense Distribution</h3>
@@ -117,28 +119,23 @@
             </div>
         </div>
 
-        <!-- Transaction History -->
         <div class="history-section">
             <div class="history-header">
                 <h2>Transaction History</h2>
                 <div class="filter-controls">
                     <select id="filter-type">
-                        <option value="all">All Transactions</option>
-                        <option value="income">Income Only</option>
-                        <option value="expense">Expenses Only</option>
+                        <option value="all">All</option>
+                        <option value="income">Income</option>
+                        <option value="expense">Expenses</option>
                     </select>
                     <select id="filter-category">
                         <option value="all">All Categories</option>
                     </select>
                     <input type="date" id="filter-date">
-                    <button id="reset-filter" class="reset-btn">
-                        <i class="fas fa-trash-alt"></i> Delete All
-                    </button>
+                    <button id="reset-filter" class="reset-btn" title="Delete all transactions for this user"><i class="fas fa-trash-alt"></i> Delete All</button>
                 </div>
             </div>
-            <div class="transactions-list" id="transactions-list">
-                <!-- Transactions will be dynamically added here -->
-            </div>
+            <div class="transactions-list" id="transactions-list"></div>
         </div>
     </div>
 
@@ -147,55 +144,25 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h2>Edit Transaction</h2>
-                <button class="close-btn">&times;</button>
+                <button class="close-btn">×</button>
             </div>
             <form id="edit-form">
-                <div class="form-group">
-                    <label for="edit-amount">Amount (₹)</label>
-                    <input type="number" id="edit-amount" required min="0" step="0.01">
-                </div>
-                <div class="form-group">
-                    <label for="edit-type">Type</label>
-                    <select id="edit-type" required>
-                        <option value="income">Income</option>
-                        <option value="expense">Expense</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="edit-category">Category</label>
-                    <select id="edit-category" required></select>
-                </div>
-                <div class="form-group">
-                    <label for="edit-date">Date</label>
-                    <input type="date" id="edit-date" required>
-                </div>
-                <div class="form-group">
-                    <label for="edit-notes">Notes</label>
-                    <textarea id="edit-notes" rows="3"></textarea>
-                </div>
+                <div class="form-group"><label for="edit-amount">Amount (₹)</label><input type="number" id="edit-amount" required min="0" step="0.01"></div>
+                <div class="form-group"><label for="edit-type">Type</label><select id="edit-type" required><option value="income">Income</option><option value="expense">Expense</option></select></div>
+                <div class="form-group"><label for="edit-category">Category</label><select id="edit-category" required></select></div>
+                <div class="form-group"><label for="edit-date">Date</label><input type="date" id="edit-date" required></div>
+                <div class="form-group"><label for="edit-notes">Notes</label><textarea id="edit-notes" rows="3"></textarea></div>
                 <div class="modal-actions">
-                    <button type="button" class="delete-btn" id="delete-transaction">
-                        <i class="fas fa-trash"></i> Delete
-                    </button>
-                    <button type="submit" class="save-btn">
-                        <i class="fas fa-save"></i> Save Changes
-                    </button>
+                    <button type="button" class="delete-btn" id="delete-transaction"><i class="fas fa-trash"></i> Delete</button>
+                    <button type="submit" class="save-btn"><i class="fas fa-save"></i> Save Changes</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- Login Message -->
-    <div class="login-message" style="display: none;">
-        <div class="message-content">
-            <i class="fas fa-lock"></i>
-            <h2>Please Login to Access Finance Manager</h2>
-            <p>Track your farming expenses, income, and financial goals with our Finance Manager.</p>
-            <button class="login-redirect-btn">Login Now</button>
-        </div>
-    </div>
-
     <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="auth.js"></script>
     <script src="expense.js"></script>
 </body>
-</html> 
+</html>

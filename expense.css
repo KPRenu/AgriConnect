@@ -1,0 +1,117 @@
+/* Import styles from home.css for navbar and global variables */
+@import url('home.css');
+
+:root {
+    --primary: #4CAF50;
+    --secondary: #2196F3;
+    --bg-color: #f0f2f5;
+    --card-bg: #ffffff;
+    --text-color: #333333;
+    --light-text: #666666;
+    --border-color: #e0e0e0;
+    --danger: #f44336;
+    --income: #4CAF50;
+    --expense: #f44336;
+    --gradient: linear-gradient(135deg, var(--primary), var(--secondary));
+}
+
+/* Main container for the feature */
+.finance-container {
+    max-width: 1200px;
+    margin: 90px auto 2rem; /* Adjust margin for fixed navbar */
+    padding: 2rem;
+    display: none; /* Initially hidden */
+}
+
+/* Quote Section */
+.quote-section {
+    background: var(--gradient);
+    color: white;
+    padding: 2rem;
+    border-radius: 15px;
+    margin-bottom: 2rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+.quote-section i { font-size: 2rem; }
+.quote-section p { margin: 0; font-size: 1.1rem; font-style: italic; }
+
+/* Balance Section */
+.balance-section {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 2rem;
+    margin-bottom: 2rem;
+}
+.balance-card { background: var(--card-bg); padding: 1.5rem; border-radius: 15px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); text-align: center; }
+.balance-card h3 { margin: 0 0 1rem 0; color: var(--text-color); }
+.balance-card .amount { margin: 0; font-size: 2rem; font-weight: bold; }
+.total-balance .amount { color: var(--primary); }
+.total-income .amount { color: var(--income); }
+.total-expense .amount { color: var(--expense); }
+
+/* Form Section */
+.add-transaction-section { background: var(--card-bg); padding: 2rem; border-radius: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 2rem; }
+.add-transaction-section h2 { margin-top: 0; }
+.form-group { margin-bottom: 1rem; }
+.form-group label { display: block; margin-bottom: 0.5rem; color: var(--text-color); font-weight: 500; }
+.form-group input, .form-group select, .form-group textarea { width: 100%; padding: 0.8rem; border: 1px solid var(--border-color); border-radius: 8px; font-size: 1rem; transition: border-color 0.3s; }
+.form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline: none; border-color: var(--primary); }
+.add-btn { width: 100%; padding: 1rem; background: var(--primary-color); color: white; border: none; border-radius: 8px; font-size: 1rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.5rem; transition: background-color 0.3s; }
+.add-btn:hover { background: var(--secondary-color); }
+
+/* Charts Section */
+.charts-section { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; margin-bottom: 2rem; }
+.chart-container { background: var(--card-bg); padding: 1.5rem; border-radius: 15px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); }
+.chart-container h3 { text-align: center; margin-top: 0; }
+
+/* History Section */
+.history-section { background: var(--card-bg); padding: 1.5rem; border-radius: 15px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); }
+.history-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem; }
+.history-header h2 { margin: 0; }
+.filter-controls { display: flex; gap: 1rem; flex-wrap: wrap; }
+.filter-controls select, .filter-controls input { padding: 0.5rem; border: 1px solid var(--border-color); border-radius: 8px; }
+.reset-btn { padding: 0.5rem 1rem; background: transparent; color: var(--danger); border: 1px solid var(--danger); border-radius: 8px; cursor: pointer; transition: all 0.3s; }
+.reset-btn:hover { background: var(--danger); color: white; }
+.transactions-list { max-height: 500px; overflow-y: auto; }
+.transaction-item { display: flex; align-items: center; padding: 1rem; border-bottom: 1px solid var(--border-color); cursor: pointer; transition: background-color 0.2s; }
+.transaction-item:hover { background-color: #f9f9f9; }
+.transaction-item:last-child { border-bottom: none; }
+.transaction-icon { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 1rem; }
+.transaction-icon.income { background-color: rgba(76, 175, 80, 0.1); color: var(--income); }
+.transaction-icon.expense { background-color: rgba(244, 67, 54, 0.1); color: var(--expense); }
+.transaction-details { flex: 1; }
+.transaction-title { font-weight: bold; margin: 0; }
+.transaction-meta { display: flex; gap: 1rem; color: var(--light-text); font-size: 0.9rem; margin-top: 0.3rem; }
+.transaction-amount { font-weight: bold; font-size: 1.1rem; }
+.transaction-amount.income { color: var(--income); }
+.transaction-amount.expense { color: var(--expense); }
+
+/* Modal Styles */
+.modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 1001; }
+.modal.active { display: flex; align-items: center; justify-content: center; }
+.modal-content { background: var(--card-bg); padding: 2rem; border-radius: 15px; width: 90%; max-width: 500px; }
+.modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+.close-btn { background: none; border: none; font-size: 1.5rem; cursor: pointer; }
+.modal-actions { display: flex; gap: 1rem; margin-top: 1.5rem; }
+.modal-actions button { flex: 1; padding: 0.8rem; border-radius: 8px; border: none; cursor: pointer; transition: opacity 0.3s; }
+.delete-btn { background-color: var(--danger); color: white; }
+.save-btn { background-color: var(--primary-color); color: white; }
+
+/* Login Message Styling */
+.login-message { display: none; /* Hidden by default */ justify-content: center; align-items: center; min-height: calc(100vh - 80px); padding: 20px; text-align: center; }
+.message-content { background-color: white; padding: 40px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); max-width: 500px; width: 90%; }
+.login-message i { font-size: 48px; color: var(--primary-color); margin-bottom: 20px; }
+.login-message h2 { margin-bottom: 15px; font-size: 24px; }
+.login-message p { color: #666; margin-bottom: 25px; line-height: 1.6; }
+.login-redirect-btn { background-color: var(--primary-color); color: white; border: none; padding: 12px 30px; border-radius: 8px; font-size: 16px; cursor: pointer; transition: background-color 0.3s; }
+.login-redirect-btn:hover { background-color: var(--secondary-color); }
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+    .finance-container { margin: 70px 1rem 1rem; padding: 1rem; }
+    .balance-section, .charts-section { grid-template-columns: 1fr; }
+    .history-header, .filter-controls { flex-direction: column; align-items: stretch; }
+}

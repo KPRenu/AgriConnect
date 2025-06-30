@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AgriConnect Task Manager</title>
+    <!-- CSS for Navbar and To-Do page -->
+    <link rel="stylesheet" href="todo.css">
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <!-- AgriConnect Standard Navbar -->
+    <nav class="navbar">
+        <div class="logo">
+            <img src="assets/logo.svg" alt="Logo">
+            <span>AgriConnect</span>
+        </div>
+        <div class="nav-links">
+            <a href="home.html">Home</a>
+            <a href="home.html#services">Services</a>
+            <a href="home.html#about">About Us</a>
+            <a href="message.html"><i class="fas fa-comments"></i> Messages</a>
+        </div>
+        <div class="auth-buttons">
+            <button class="login-btn" id="nav-login-btn" onclick="window.location.href='login.html'">Login</button>
+            <div class="profile-dropdown" id="nav-profile-dropdown" style="display: none;">
+                <div class="profile-trigger">
+                    <img src="assets/default-avatar.svg" alt="Profile" class="profile-image" id="nav-profile-image">
+                    <span class="profile-name" id="nav-profile-name">User</span>
+                </div>
+                <div class="dropdown-content">
+                    <a href="profile.html" class="dropdown-item">
+                        <i class="fas fa-user"></i> My Profile
+                    </a>
+                    <a href="#" class="dropdown-item" id="nav-logout-btn">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="hamburger">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+    </nav>
+
+    <!-- Main To-Do Container -->
+    <div class="todo-container">
+        <!-- Daily Quote Section -->
+        <div class="quote-section">
+            <i class="fas fa-quote-left"></i>
+            <p id="daily-quote">Loading daily farming wisdom...</p>
+        </div>
+        
+        <!-- Progress Section -->
+        <div class="progress-section">
+            <h3>Today's Progress</h3>
+            <div class="progress-bar">
+                <div class="progress" id="progress-fill"></div>
+            </div>
+            <p id="progress-text">0% Complete</p>
+        </div>
+
+        <!-- Add Task Section -->
+        <div class="add-task-section">
+            <form id="task-form">
+                <input type="text" id="task-input" placeholder="Enter your farming task..." required>
+                <select id="task-category" required>
+                    <option value="" disabled selected>Select Category</option>
+                    <option value="Irrigation">Irrigation</option>
+                    <option value="Harvesting">Harvesting</option>
+                    <option value="Fertilization">Fertilization</option>
+                    <option value="Maintenance">Maintenance</option>
+                    <option value="Planting">Planting</option>
+                    <option value="Scouting">Scouting</option>
+                    <option value="Other">Other</option>
+                </select>
+                <input type="date" id="task-date" required>
+                <button type="submit" class="add-btn">
+                    <i class="fas fa-plus"></i> Add Task
+                </button>
+            </form>
+        </div>
+
+        <!-- Filter Section -->
+        <div class="filter-section">
+            <div class="filter-buttons">
+                <button class="filter-btn active" data-filter="all">All</button>
+                <button class="filter-btn" data-filter="pending">Pending</button>
+                <button class="filter-btn" data-filter="completed">Completed</button>
+            </div>
+            <select id="category-filter">
+                <option value="all">All Categories</option>
+                <option value="Irrigation">Irrigation</option>
+                <option value="Harvesting">Harvesting</option>
+                <option value="Fertilization">Fertilization</option>
+                <option value="Maintenance">Maintenance</option>
+                <option value="Planting">Planting</option>
+                <option value="Scouting">Scouting</option>
+                <option value="Other">Other</option>
+            </select>
+        </div>
+
+        <!-- Tasks List -->
+        <div class="tasks-list" id="tasks-list">
+             <!-- Tasks will be dynamically added here -->
+             <p class="loading-tasks">Loading tasks...</p>
+        </div>
+    </div>
+
+    <!-- Supabase and Auth Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="auth.js"></script>
+    <!-- To-Do Page Specific Script -->
+    <script src="todo.js"></script>
+
+    <!-- Inline script for page-specific authentication and UI updates -->
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Protect this page - if not logged in, auth.js will redirect
+            await requireAuth();
+
+            // Elements for UI update
+            const loginButton = document.getElementById('nav-login-btn');
+            const profileDropdown = document.getElementById('nav-profile-dropdown');
+            const profileNameNav = document.getElementById('nav-profile-name');
+            const profileImageNav = document.getElementById('nav-profile-image');
+
+            // Since requireAuth passed, we know user is logged in. Update UI accordingly.
+            if(loginButton) loginButton.style.display = 'none';
+            if(profileDropdown) profileDropdown.style.display = 'flex';
+
+            // Fetch profile to display name and avatar
+            const profile = await getCurrentUserProfile(); 
+            if (profile) {
+                if(profileNameNav) profileNameNav.textContent = profile.full_name || 'User';
+                if (profile.avatar_url && profileImageNav) {
+                    profileImageNav.src = profile.avatar_url;
+                } else {
+                    profileImageNav.src = 'assets/default-avatar.svg'; // Fallback
+                }
+            }
+            
+            // Now that user is authenticated, run the To-Do app initialization
+            initializeApp();
+        });
+    </script>
+</body>
+</html>
