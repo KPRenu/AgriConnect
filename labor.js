@@ -13,7 +13,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Inputs
     const searchInput = document.getElementById('search-input');
-    
+
     // Modals & Forms
     const registerLaborModal = document.getElementById('register-labor-modal');
     const bookingModal = document.getElementById('booking-modal');
@@ -21,10 +21,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     const notificationModal = document.getElementById('notification-modal');
     const registerLaborForm = document.getElementById('register-labor-form');
     const bookingForm = document.getElementById('booking-form');
-    
+
     // --- NEW/UPDATED SECTION: State Management for Search & Filter ---
     let currentUser = null;
     let userProfile = null;
+    let userBookings = []; // To store all user-related bookings
     let currentFilter = 'all';
     let searchQuery = '';
 
@@ -39,13 +40,14 @@ document.addEventListener('DOMContentLoaded', async () => {
         loginMessage.style.display = 'flex';
         laborContainer.style.display = 'none';
     }
-    
+
     async function initializePage() {
         userProfile = await getCurrentUserProfile();
+        await fetchUserBookings(); // Fetch bookings on page load
         setupEventListeners();
         fetchAndRenderLaborers(); // Initial data load
         fetchNotifications();
-        
+
         const profileDropdown = document.getElementById('nav-profile-dropdown');
         const loginNavBtn = document.getElementById('nav-login-btn');
         if (profileDropdown && loginNavBtn) {
@@ -56,41 +58,90 @@ document.addEventListener('DOMContentLoaded', async () => {
             document.getElementById('nav-logout-btn').addEventListener('click', () => logout());
         }
     }
-    
+
     // --- 2. DATA FETCHING (Now combined for search and filter) ---
     // --- NEW/UPDATED SECTION: Combined Fetching Logic ---
     async function fetchAndRenderLaborers() {
         laborGrid.innerHTML = '<p>Loading laborers...</p>';
+        let finalData = [];
+        let fetchError = null;
 
-        let query = supabase
-            .from('labors')
-            .select(`
-                *,
-                profile:profiles(full_name, city, state, phone)
-            `);
-
-        // 1. Apply the work_type filter if it's not 'all'
-        if (currentFilter !== 'all') {
-            query = query.eq('work_type', currentFilter);
-        }
-
-        // 2. Apply the search query if it exists
         if (searchQuery) {
-            // This searches for the query text in the laborer's full name from the related 'profiles' table.
-            // The 'ilike' makes it case-insensitive.
-            query = query.ilike('profiles.full_name', `%${searchQuery}%`);
+            // Since we're searching across related tables (profiles) and the main table (labors),
+            // we perform two separate queries and merge the results. This avoids the need for a database function.
+
+            // Query 1: Search for text fields in the related 'profiles' table.
+            const textSearchQuery = supabase
+                .from('labors')
+                .select('*, profile:profiles!inner(full_name, city, state, phone, avatar_url)')
+                .or(`full_name.ilike.%${searchQuery}%,city.ilike.%${searchQuery}%`, { referencedTable: 'profiles' });
+
+            // Query 2: If the search is a number, also search the 'experience' field in the 'labors' table.
+            const searchNumber = Number(searchQuery);
+            let experienceQuery = Promise.resolve({ data: [], error: null }); // Default promise that resolves to empty
+            if (!isNaN(searchNumber)) {
+                experienceQuery = supabase
+                    .from('labors')
+                    .select('*, profile:profiles(full_name, city, state, phone, avatar_url)')
+                    .eq('experience', searchNumber);
+            }
+
+            // Run queries in parallel
+            const [textResults, experienceResults] = await Promise.all([textSearchQuery, experienceQuery]);
+
+            if (textResults.error) fetchError = textResults.error;
+            if (experienceResults.error) fetchError = experienceResults.error;
+
+            if (!fetchError) {
+                const allResults = [
+                    ...(textResults.data || []),
+                    ...(experienceResults.data || [])
+                ];
+                // Deduplicate results using a Map, as a laborer could match both text and experience queries.
+                finalData = Array.from(new Map(allResults.map(item => [item.id, item])).values());
+            }
+
+        } else {
+            // Original logic for when there's no search query, only filtering.
+            let query = supabase
+                .from('labors')
+                .select('*, profile:profiles(full_name, city, state, phone, avatar_url)');
+
+            if (currentFilter !== 'all') {
+                query = query.eq('work_type', currentFilter);
+            }
+            const { data, error } = await query;
+            finalData = data;
+            fetchError = error;
         }
-        
-        const { data, error } = await query;
-        
-        if (error) {
-            console.error('Error fetching laborers:', error);
+
+
+        if (fetchError) {
+            console.error('Error fetching laborers:', JSON.stringify(fetchError, null, 2));
             laborGrid.innerHTML = '<p>Could not load laborers at this time.</p>';
             return;
         }
-        renderLaborers(data);
+        renderLaborers(finalData);
     }
-    
+
+    async function fetchUserBookings() {
+        const { data, error } = await supabase
+            .from('bookings')
+            .select(`
+                *,
+                client:profiles!client_id(id, full_name, avatar_url),
+                laborer:labors!labor_id(id, user_id, profile:profiles!user_id(id, full_name, avatar_url))
+            `)
+            .or(`client_id.eq.${currentUser.id},labor_id.eq.${currentUser.id}`);
+
+        if (error) {
+            console.error('Error fetching bookings:', JSON.stringify(error, null, 2));
+            return;
+        }
+        userBookings = data;
+        console.log('Successfully fetched bookings:', userBookings);
+    }
+
     async function fetchNotifications() {
         // ... (this function is unchanged)
         const { data, error, count } = await supabase
@@ -128,7 +179,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             card.querySelector('.work-type').textContent = laborer.work_type;
             card.querySelector('.labor-description').textContent = laborer.description;
             card.querySelector('.labor-image img').src = laborer.photo_url || 'assets/default-avatar.svg';
-            
+
             const availabilityBadge = card.querySelector('.availability-badge');
             availabilityBadge.textContent = laborer.is_available ? 'Available' : 'Unavailable';
             availabilityBadge.style.background = laborer.is_available ? 'var(--success)' : 'var(--danger)';
@@ -147,7 +198,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             laborGrid.appendChild(card);
         });
     }
-    
+
     // --- 4. EVENT LISTENERS & HANDLERS ---
     function setupEventListeners() {
         // --- NEW/UPDATED SECTION: Event listeners for search and filter ---
@@ -161,13 +212,13 @@ document.addEventListener('DOMContentLoaded', async () => {
                 event.target.style.display = 'none';
             }
         };
-        
-        // Modal Triggers (unchanged)
+
+        // Modal Triggers
         registerLaborBtn.onclick = openRegisterModal;
-        viewBookingsBtn.onclick = openMyBookingsModal;
+        viewBookingsBtn.onclick = () => openMyBookingsModal();
         notificationBtn.onclick = openNotificationModal;
-        
-        // Form Submissions (unchanged)
+
+        // Form Submissions
         registerLaborForm.onsubmit = handleRegisterLabor;
         bookingForm.onsubmit = handleCreateBooking;
 
@@ -191,21 +242,30 @@ document.addEventListener('DOMContentLoaded', async () => {
                 // Update active button style
                 filterButtons.forEach(btn => btn.classList.remove('active'));
                 button.classList.add('active');
-                
+
                 // Update state and re-fetch data
                 currentFilter = button.dataset.type;
                 fetchAndRenderLaborers();
             });
         });
+
+        // Bookings modal tabs
+        const bookingTabs = myBookingsModal.querySelectorAll('.bookings-tabs .tab-btn');
+        bookingTabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                bookingTabs.forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                renderBookings(tab.dataset.tab);
+            });
+        });
     }
 
-    // --- The rest of the handler functions (handleRegisterLabor, handleCreateBooking, handleDeleteLaborer) are unchanged. ---
-
+    // --- ACTION HANDLERS ---
     async function handleRegisterLabor(e) {
         e.preventDefault();
         const form = e.target;
         let photoUrl = null;
-        
+
         const photoFile = form.querySelector('#labor-photo').files[0];
         if (photoFile) {
             const fileName = `${currentUser.id}/${Date.now()}_${photoFile.name}`;
@@ -213,7 +273,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 .from('labor')
                 .upload(fileName, photoFile);
             if (uploadError) return alert('Error uploading photo: ' + uploadError.message);
-            
+
             const { data: urlData } = supabase.storage.from('labor').getPublicUrl(uploadData.path);
             photoUrl = urlData.publicUrl;
         }
@@ -231,37 +291,78 @@ document.addEventListener('DOMContentLoaded', async () => {
             console.error('Error during registration:', error);
             return alert('Error registering: ' + error.message);
         }
-        
+
         alert('Successfully registered as a laborer!');
         registerLaborModal.style.display = 'none';
         fetchAndRenderLaborers();
     }
-    
+
+    async function handleUpdateBookingStatus(bookingId, status) {
+        const { error } = await supabase
+            .from('bookings')
+            .update({ status: status })
+            .eq('id', bookingId);
+
+        if (error) {
+            console.error('Error updating booking status:', error);
+            alert('Error updating booking status: ' + error.message);
+            return;
+        }
+        console.log(`Booking ${bookingId} status updated to ${status}`);
+
+        // Update local data and re-render for instant feedback
+        const bookingIndex = userBookings.findIndex(b => b.id == bookingId);
+        if (bookingIndex > -1) {
+            userBookings[bookingIndex].status = status;
+        }
+        const activeTab = document.querySelector('.bookings-tabs .tab-btn.active').dataset.tab;
+        renderBookings(activeTab);
+        await fetchNotifications(); // Re-fetch notifications in case one was read
+    }
+
     async function handleCreateBooking(e) {
         e.preventDefault();
         const form = e.target;
         const laborId = form.querySelector('#booking-labor-id').value;
 
-        const { error } = await supabase.from('bookings').insert({
+        const bookingData = {
             labor_id: laborId,
             client_id: currentUser.id,
             work_date: form.querySelector('#booking-date').value,
             duration: form.querySelector('#booking-duration').value,
             work_details: form.querySelector('#booking-details').value,
             work_location: form.querySelector('#booking-location').value,
-        });
-        
-        if (error) return alert('Error creating booking: ' + error.message);
-        
-        await supabase.from('notifications').insert({
+        };
+        console.log('Attempting to create booking with data:', bookingData);
+
+        const { data: newBooking, error } = await supabase.from('bookings').insert(bookingData).select().single();
+
+        if (error) {
+            console.error('Error creating booking:', JSON.stringify(error, null, 2));
+            return alert('Error creating booking: ' + error.message);
+        }
+
+        console.log('Booking created successfully:', newBooking);
+
+        const { data: notifData, error: notifError } = await supabase.from('notifications').insert({
             user_id: laborId,
             from_user_id: currentUser.id,
             type: 'booking_request',
             message: `${userProfile.full_name || 'A user'} has requested to book you.`
         });
 
+        if (notifError) {
+            console.error('Error creating notification:', notifError);
+            alert('Error creating notification: ' + notifError.message);
+        }
+
+        console.log('Bookings after fetch:', userBookings);
         alert('Booking request sent successfully!');
         bookingModal.style.display = 'none';
+
+        // Refresh local booking data and show the user their new booking
+        await fetchUserBookings();
+        openMyBookingsModal('made');
     }
 
     async function handleDeleteLaborer(laborerId) {
@@ -269,13 +370,74 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         const { error } = await supabase.from('labors').delete().eq('id', laborerId);
         if (error) return alert('Error deleting profile: ' + error.message);
-        
+
         alert('Your labor profile has been deleted.');
         fetchAndRenderLaborers();
     }
 
-    // --- 5. MODAL LOGIC ---
-    // --- All modal functions are unchanged ---
+    // --- 5. MODAL & RENDERING LOGIC ---
+    function renderBookings(type) {
+        const list = document.getElementById('bookings-list');
+        const template = document.getElementById('booking-item-template');
+        list.innerHTML = '';
+
+        console.log(`Rendering bookings for type: "${type}"`);
+
+        const filteredBookings = userBookings.filter(booking => {
+            if (!booking.laborer || !booking.client) return false; // Guard against incomplete data
+            const isReceived = booking.laborer.user_id === currentUser.id;
+            const isMade = booking.client.id === currentUser.id;
+            return type === 'received' ? isReceived : isMade;
+        });
+
+        console.log('Filtered bookings:', filteredBookings);
+
+        if (filteredBookings.length === 0) {
+            list.innerHTML = '<p>You have no bookings of this type.</p>';
+            return;
+        }
+
+        filteredBookings.forEach(booking => {
+            const card = template.content.cloneNode(true);
+            const title = card.querySelector('.booking-item-title');
+            const avatar = card.querySelector('.booking-item-avatar');
+            const actions = card.querySelector('.booking-item-actions');
+
+            const isReceived = booking.laborer.user_id === currentUser.id;
+            const isMade = booking.client.id === currentUser.id;
+            if (type === 'received') {
+                if (!isReceived) return;
+                title.textContent = `Booking from: ${booking.client.full_name}`;
+                avatar.src = booking.client.avatar_url || 'assets/default-avatar.svg';
+                if (booking.status === 'pending') {
+                    actions.innerHTML = `
+                        <button class="accept-btn" data-booking-id="${booking.id}">Accept</button>
+                        <button class="decline-btn" data-booking-id="${booking.id}">Decline</button>
+                    `;
+                }
+            } else { // 'made'
+                if (!isMade) return;
+                title.textContent = `Booking for: ${booking.laborer.profile.full_name}`;
+                avatar.src = booking.laborer.profile.avatar_url || 'assets/default-avatar.svg';
+            }
+
+            card.querySelector('.booking-item-meta').textContent = `Date: ${booking.work_date}`;
+            const statusBadge = card.querySelector('.status-badge');
+            statusBadge.textContent = booking.status;
+            statusBadge.className = `status-badge ${booking.status}`;
+
+            list.appendChild(card);
+        });
+
+        list.querySelectorAll('.accept-btn, .decline-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const bookingId = e.target.dataset.bookingId;
+                const newStatus = e.target.classList.contains('accept-btn') ? 'confirmed' : 'declined';
+                handleUpdateBookingStatus(bookingId, newStatus);
+            });
+        });
+    }
+
     function openRegisterModal() {
         document.getElementById('labor-name').value = userProfile.full_name || '';
         document.getElementById('labor-contact').value = userProfile.phone || '';
@@ -287,35 +449,16 @@ document.addEventListener('DOMContentLoaded', async () => {
         document.getElementById('booking-laborer-name').textContent = laborer.profile.full_name;
         bookingModal.style.display = 'block';
     }
-    
-    async function openMyBookingsModal() {
-        myBookingsModal.style.display = 'block';
-        const list = document.getElementById('bookings-list');
-        list.innerHTML = '<p>Loading...</p>';
-        
-        const { data, error } = await supabase
-            .from('bookings')
-            .select(`
-                *,
-                client:profiles!client_id(full_name, avatar_url),
-                laborer:labors!labor_id(profile:profiles(full_name, avatar_url))
-            `)
-            .or(`client_id.eq.${currentUser.id},labor_id.eq.${currentUser.id}`);
 
-        if(error) return list.innerHTML = `<p>Error fetching bookings: ${error.message}</p>`;
-        
-        if(data.length === 0) return list.innerHTML = '<p>You have no bookings.</p>';
-        
-        list.innerHTML = data.map(booking => `
-            <div class="booking-item">
-                <img src="${booking.client.avatar_url || 'assets/default-avatar.svg'}" alt="User">
-                <div class="booking-details">
-                    <h4>Booking from ${booking.client.full_name} for ${booking.laborer.profile.full_name}</h4>
-                    <p>Date: ${booking.work_date} | Location: ${booking.work_location}</p>
-                    <p class="booking-status">${booking.status}</p>
-                </div>
-            </div>
-        `).join('');
+    async function openMyBookingsModal(defaultTab = 'received') {
+        myBookingsModal.style.display = 'block';
+
+        const bookingTabs = myBookingsModal.querySelectorAll('.bookings-tabs .tab-btn');
+        bookingTabs.forEach(tab => {
+            tab.classList.toggle('active', tab.dataset.tab === defaultTab);
+        });
+
+        renderBookings(defaultTab);
     }
 
     async function openNotificationModal() {
@@ -338,13 +481,13 @@ document.addEventListener('DOMContentLoaded', async () => {
                 <small>${new Date(n.created_at).toLocaleString()}</small>
             </div>
         `).join('');
-        
+
         await supabase
             .from('notifications')
             .update({ is_read: true })
             .eq('user_id', currentUser.id)
             .eq('is_read', false);
-        
+
         fetchNotifications();
     }
 });
